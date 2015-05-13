@@ -5,9 +5,9 @@ package ru.fuzzysearch;
  */
 public class EnglishAlphabet extends SimpleAlphabet {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public EnglishAlphabet() {
-		super('A', 'Z');
-	}
+    public EnglishAlphabet() {
+        super('A', 'Z');
+    }
 }

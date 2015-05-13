@@ -5,5 +5,5 @@ package ru.fuzzysearch;
  */
 public interface IntComparator {
 
-	public int compare(int first, int second);
+    int compare(int first, int second);
 }

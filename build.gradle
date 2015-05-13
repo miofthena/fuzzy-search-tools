@@ -4,3 +4,6 @@ apply plugin: 'idea'
 task wrapper(type: Wrapper) {
     gradleVersion = '2.3'
 }
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8

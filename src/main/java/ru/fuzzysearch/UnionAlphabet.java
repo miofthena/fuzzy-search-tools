@@ -5,38 +5,37 @@ package ru.fuzzysearch;
  */
 public class UnionAlphabet implements Alphabet {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    private final Alphabet[] alphabets;
+    private final char[] chars;
 
-	public UnionAlphabet(Alphabet... alphabets) {
-		this.alphabets = alphabets;
+    public UnionAlphabet(Alphabet... alphabets) {
+        this.alphabets = alphabets;
 
-		int charsLength = 0;
-		for (Alphabet alphabet : alphabets)
-			charsLength += alphabet.size();
+        int charsLength = 0;
+        for (Alphabet alphabet : alphabets)
+            charsLength += alphabet.size();
 
-		chars = new char[charsLength];
+        chars = new char[charsLength];
 
-		int index = 0;
-		for (Alphabet alphabet : alphabets)
-			for (char ch : alphabet.chars())
-				chars[index++] = ch;
-	}
+        int index = 0;
+        for (Alphabet alphabet : alphabets)
+            for (char ch : alphabet.chars())
+                chars[index++] = ch;
+    }
 
-	public int mapChar(char ch) {
-		int index;
-		for (Alphabet alphabet : alphabets)
-			if ((index = alphabet.mapChar(ch)) >= 0) return index;
-		return -1;
-	}
+    public int mapChar(char ch) {
+        int index;
+        for (Alphabet alphabet : alphabets)
+            if ((index = alphabet.mapChar(ch)) >= 0) return index;
+        return -1;
+    }
 
-	public char[] chars() {
-		return chars;
-	}
+    public char[] chars() {
+        return chars;
+    }
 
-	public int size() {
-		return chars.length;
-	}
-
-	private final Alphabet[] alphabets;
-	private final char[] chars;
+    public int size() {
+        return chars.length;
+    }
 }

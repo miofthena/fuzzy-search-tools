@@ -6,26 +6,23 @@ import java.util.Set;
 
 public class MetricOnlineSearcher extends WordOnlineSearcher {
 
-	public MetricOnlineSearcher(Metric metric, boolean prefix) {
-		this.metric = metric;
-		this.prefix = prefix;
-	}
+    private final Metric metric;
+    private final boolean prefix;
 
-	public Set<Integer> search(Reader reader, final String word, final int maxDistance) {
-		final Set<Integer> result = new HashSet<Integer>();
+    public MetricOnlineSearcher(Metric metric, boolean prefix) {
+        this.metric = metric;
+        this.prefix = prefix;
+    }
 
-		Visitor visitor = new Visitor() {
+    public Set<Integer> search(Reader reader, final String word, final int maxDistance) {
+        final Set<Integer> result = new HashSet<>();
 
-			public void read(CharSequence string, int index) {
-				if (metric.getDistance(string, word, maxDistance, prefix) <= maxDistance)
-					result.add(new Integer(index));
-			}
-		};
+        Visitor visitor = (string, index) -> {
+            if (metric.getDistance(string, word, maxDistance, prefix) <= maxDistance)
+                result.add(index);
+        };
 
-		readText(reader, visitor);
-		return result;
-	}
-
-	private final Metric metric;
-	private final boolean prefix;
+        readText(reader, visitor);
+        return result;
+    }
 }

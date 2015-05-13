@@ -7,10 +7,10 @@ import java.io.Serializable;
  */
 public interface Index extends Serializable {
 
-	/**
-	 * Словарь, по которому построен индекс.
-	 * 
-	 * @return словарь - массив слов.
-	 */
-	public String[] getDictionary();
+    /**
+     * Словарь, по которому построен индекс.
+     *
+     * @return словарь - массив слов.
+     */
+    public String[] getDictionary();
 }

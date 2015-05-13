@@ -1,244 +1,237 @@
 package ru.fuzzysearch;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Reader;
+import java.io.*;
 
 public class FuzzySearch {
 
-	public static Object loadObject(String filename) throws Exception {
-		FileInputStream fileInputStream = new FileInputStream(filename);
-		ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+    private static final String PATH = System.getProperty("user.home") + "/";
+    private static final int TEST_COUNT = 1000;
+    private static final int ONLINE_TEST_COUNT = 10;
+    private static final int MIN_LENGTH = 3;
 
-		Object object = objectInputStream.readObject();
+    public static Object loadObject(String filename) throws Exception {
+        FileInputStream fileInputStream = new FileInputStream(filename);
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
-		objectInputStream.close();
-		fileInputStream.close();
-		return object;
-	}
+        Object object = objectInputStream.readObject();
 
-	public static void saveObject(Object object, String filename) throws Exception {
-		FileOutputStream fileOutputStream = new FileOutputStream(filename);
-		ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+        objectInputStream.close();
+        fileInputStream.close();
+        return object;
+    }
 
-		objectOutputStream.writeObject(object);
+    public static void saveObject(Object object, String filename) throws Exception {
+        FileOutputStream fileOutputStream = new FileOutputStream(filename);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
 
-		objectOutputStream.close();
-		fileOutputStream.close();
-	}
+        objectOutputStream.writeObject(object);
 
-	public static interface SearchFactory {
+        objectOutputStream.close();
+        fileOutputStream.close();
+    }
 
-		public String getName();
+    public static void main(String[] args) throws Exception {
+        System.setProperty("file.encoding", "UTF-8");
 
-		public String getFilename();
+        SearchFactory extensionFactory = new SearchFactory() {
 
-		public Index newIndex(String[] dictionary);
+            public String getFilename() {
+                return "extension_index.txt";
+            }
 
-		public Searcher newSearcher(Index index);
-	}
+            public String getName() {
+                return "Extension Method";
+            }
 
-	public static void main(String[] args) throws Exception {
-		System.setProperty("file.encoding", "UTF-8");
+            public Index newIndex(String[] dictionary) {
+                return new ExtensionIndexer().createIndex(dictionary);
+            }
 
-		SearchFactory extensionFactory = new SearchFactory() {
+            public Searcher newSearcher(Index index) {
+                return new ExtensionSearcher((ExtensionIndex) index, new RussianAlphabet(), false, 2);
+            }
+        };
 
-			public String getFilename() {
-				return "extension_index.txt";
-			}
+        SearchFactory ngramFactory = new SearchFactory() {
 
-			public String getName() {
-				return "Extension Method";
-			}
+            public String getFilename() {
+                return "ngram_index.txt";
+            }
 
-			public Index newIndex(String[] dictionary) {
-				return new ExtensionIndexer().createIndex(dictionary);
-			}
+            public String getName() {
+                return "N-Gram Method";
+            }
 
-			public Searcher newSearcher(Index index) {
-				return new ExtensionSearcher((ExtensionIndex) index, new RussianAlphabet(), false, 2);
-			}
-		};
+            public Index newIndex(String[] dictionary) {
+                return new NGramIndexer(new RussianAlphabet()).createIndex(dictionary);
+            }
 
-		SearchFactory ngramFactory = new SearchFactory() {
+            public Searcher newSearcher(Index index) {
+                return new NGramSearcher((NGramIndex) index, new DamerauLevensteinMetric(), 2, false);
+            }
+        };
 
-			public String getFilename() {
-				return "ngram_index.txt";
-			}
+        SearchFactory ngram1Factory = new SearchFactory() {
 
-			public String getName() {
-				return "N-Gram Method";
-			}
+            public String getFilename() {
+                return "ngram1_index.txt";
+            }
 
-			public Index newIndex(String[] dictionary) {
-				return new NGramIndexer(new RussianAlphabet()).createIndex(dictionary);
-			}
+            public String getName() {
+                return "N-Gram M1 Method";
+            }
 
-			public Searcher newSearcher(Index index) {
-				return new NGramSearcher((NGramIndex) index, new DamerauLevensteinMetric(), 2, false);
-			}
-		};
+            public Index newIndex(String[] dictionary) {
+                return new NGramIndexerM1(new RussianAlphabet()).createIndex(dictionary);
+            }
 
-		SearchFactory ngram1Factory = new SearchFactory() {
+            public Searcher newSearcher(Index index) {
+                return new NGramSearcherM1((NGramIndexM1) index, new DamerauLevensteinMetric(), 2, false);
+            }
+        };
 
-			public String getFilename() {
-				return "ngram1_index.txt";
-			}
+        SearchFactory ngram2Factory = new SearchFactory() {
 
-			public String getName() {
-				return "N-Gram M1 Method";
-			}
+            public String getFilename() {
+                return "ngram2_index.txt";
+            }
 
-			public Index newIndex(String[] dictionary) {
-				return new NGramIndexerM1(new RussianAlphabet()).createIndex(dictionary);
-			}
+            public String getName() {
+                return "N-Gram M2 Method";
+            }
 
-			public Searcher newSearcher(Index index) {
-				return new NGramSearcherM1((NGramIndexM1) index, new DamerauLevensteinMetric(), 2, false);
-			}
-		};
+            public Index newIndex(String[] dictionary) {
+                return new NGramIndexerM2(new RussianAlphabet()).createIndex(dictionary);
+            }
 
-		SearchFactory ngram2Factory = new SearchFactory() {
+            public Searcher newSearcher(Index index) {
+                return new NGramSearcherM2((NGramIndexM2) index, new DamerauLevensteinMetric(), 2, false);
+            }
+        };
 
-			public String getFilename() {
-				return "ngram2_index.txt";
-			}
+        SearchFactory signHashFactory = new SearchFactory() {
 
-			public String getName() {
-				return "N-Gram M2 Method";
-			}
+            public String getFilename() {
+                return "signhash_index.txt";
+            }
 
-			public Index newIndex(String[] dictionary) {
-				return new NGramIndexerM2(new RussianAlphabet()).createIndex(dictionary);
-			}
+            public String getName() {
+                return "SignHash Method";
+            }
 
-			public Searcher newSearcher(Index index) {
-				return new NGramSearcherM2((NGramIndexM2) index, new DamerauLevensteinMetric(), 2, false);
-			}
-		};
+            public Index newIndex(String[] dictionary) {
+                return new SignHashIndexer(new RussianAlphabet()).createIndex(dictionary);
+            }
 
-		SearchFactory signHashFactory = new SearchFactory() {
+            public Searcher newSearcher(Index index) {
+                return new SignHashSearcher((SignHashIndex) index, new DamerauLevensteinMetric(), 2);
+            }
+        };
 
-			public String getFilename() {
-				return "signhash_index.txt";
-			}
+        SearchFactory bktreeFactory = new SearchFactory() {
 
-			public String getName() {
-				return "SignHash Method";
-			}
+            public String getFilename() {
+                return "bktree_index.txt";
+            }
 
-			public Index newIndex(String[] dictionary) {
-				return new SignHashIndexer(new RussianAlphabet()).createIndex(dictionary);
-			}
+            public String getName() {
+                return "BK Tree Method";
+            }
 
-			public Searcher newSearcher(Index index) {
-				return new SignHashSearcher((SignHashIndex) index, new DamerauLevensteinMetric(), 2);
-			}
-		};
+            public Index newIndex(String[] dictionary) {
+                return new BKTreeIndexer(new DamerauLevensteinMetric()).createIndex(dictionary);
+            }
 
-		SearchFactory bktreeFactory = new SearchFactory() {
+            public Searcher newSearcher(Index index) {
+                return new BKTreeSearcher((BKTreeIndex) index, new DamerauLevensteinMetric(), 2);
+            }
+        };
 
-			public String getFilename() {
-				return "bktree_index.txt";
-			}
+        SearchFactory[] factories = new SearchFactory[]{extensionFactory, ngramFactory, ngram1Factory, ngram2Factory,
+                signHashFactory, bktreeFactory};
 
-			public String getName() {
-				return "BK Tree Method";
-			}
+        String dictFile = PATH + "dict.txt";
 
-			public Index newIndex(String[] dictionary) {
-				return new BKTreeIndexer(new DamerauLevensteinMetric()).createIndex(dictionary);
-			}
+        String[] dictionary = Dictionary.loadDictionary(dictFile);
+        long dictFileSize = new File(dictFile).length();
 
-			public Searcher newSearcher(Index index) {
-				return new BKTreeSearcher((BKTreeIndex) index, new DamerauLevensteinMetric(), 2);
-			}
-		};
+        System.out.println("Dictionary file size: " + (dictFileSize / (1024 * 1024)) + " MB");
 
-		SearchFactory[] factories = new SearchFactory[] { extensionFactory, ngramFactory, ngram1Factory, ngram2Factory,
-			signHashFactory, bktreeFactory };
+        for (SearchFactory factory : factories) {
+            long startTime = System.currentTimeMillis();
+            Index index = factory.newIndex(dictionary);
+            long endTime = System.currentTimeMillis();
 
-		String dictFile = PATH + "dict.txt";
+            String indexFile = PATH + factory.getFilename();
+            saveObject(index, indexFile);
 
-		String[] dictionary = Dictionary.loadDictionary(dictFile);
-		long dictFileSize = new File(dictFile).length();
+            long indexFileSize = new File(indexFile).length();
 
-		System.out.println("Dictionary file size: " + (dictFileSize / (1024 * 1024)) + " MB");
+            System.out.println(factory.getName() + " index file size: " + (indexFileSize / (1024 * 1024)) + " MB");
+            System.out.println(factory.getName() + " index creation time: " + (double) (endTime - startTime) / 1000
+                    + " с");
+            System.out.println();
+        }
 
-		for (SearchFactory factory : factories) {
-			long startTime = System.currentTimeMillis();
-			Index index = factory.newIndex(dictionary);
-			long endTime = System.currentTimeMillis();
+        System.out.println();
 
-			String indexFile = PATH + factory.getFilename();
-			saveObject(index, indexFile);
+        for (SearchFactory factory : factories) {
+            String indexFile = PATH + factory.getFilename();
+            Index index = (Index) loadObject(indexFile);
 
-			long indexFileSize = new File(indexFile).length();
+            Searcher searcher = factory.newSearcher(index);
 
-			System.out.println(factory.getName() + " index file size: " + (indexFileSize / (1024 * 1024)) + " MB");
-			System.out.println(factory.getName() + " index creation time: " + (double) (endTime - startTime) / 1000
-				+ " с");
-			System.out.println();
-		}
+            int step = dictionary.length / TEST_COUNT;
+            long startTime = System.currentTimeMillis();
 
-		System.out.println();
+            int count = 0;
 
-		for (SearchFactory factory : factories) {
-			String indexFile = PATH + factory.getFilename();
-			Index index = (Index) loadObject(indexFile);
+            for (int i = 0; i < dictionary.length; i += step) {
+                String word = dictionary[i];
+                if (word.length() >= MIN_LENGTH) {
+                    searcher.search(word);
+                    ++count;
+                }
+            }
 
-			Searcher searcher = factory.newSearcher(index);
+            long endTime = System.currentTimeMillis();
 
-			int step = dictionary.length / TEST_COUNT;
-			long startTime = System.currentTimeMillis();
+            System.out.println(factory.getName() + " search time: " + (double) (endTime - startTime) / count + " мс");
+        }
 
-			int count = 0;
+        System.out.println();
 
-			for (int i = 0; i < dictionary.length; i += step) {
-				String word = dictionary[i];
-				if (word.length() >= MIN_LENGTH) {
-					searcher.search(word);
-					++count;
-				}
-			}
+        OnlineSearcher[] onlineSearchers = new OnlineSearcher[]{new BitapOnlineSearcher(new RussianAlphabet()),
+                new MetricOnlineSearcher(new LevensteinMetric(), false)};
 
-			long endTime = System.currentTimeMillis();
+        for (OnlineSearcher onlineSearcher : onlineSearchers) {
+            int step = dictionary.length / ONLINE_TEST_COUNT;
+            long startTime = System.currentTimeMillis();
 
-			System.out.println(factory.getName() + " search time: " + (double) (endTime - startTime) / count + " мс");
-		}
+            int count = 0;
+            for (int i = 0; i < dictionary.length; i += step) {
+                String word = dictionary[i];
+                if (word.length() >= MIN_LENGTH) {
+                    Reader reader = new BufferedReader(new FileReader(dictFile));
+                    onlineSearcher.search(reader, word, 2);
+                    ++count;
+                }
+            }
+            long endTime = System.currentTimeMillis();
 
-		System.out.println();
+            System.out.println(onlineSearcher.getClass().getSimpleName() + " search time: "
+                    + (double) (endTime - startTime) / count + " мс");
+        }
+    }
 
-		OnlineSearcher[] onlineSearchers = new OnlineSearcher[] { new BitapOnlineSearcher(new RussianAlphabet()),
-			new MetricOnlineSearcher(new LevensteinMetric(), false) };
+    public interface SearchFactory {
 
-		for (OnlineSearcher onlineSearcher : onlineSearchers) {
-			int step = dictionary.length / ONLINE_TEST_COUNT;
-			long startTime = System.currentTimeMillis();
+        String getName();
 
-			int count = 0;
-			for (int i = 0; i < dictionary.length; i += step) {
-				String word = dictionary[i];
-				if (word.length() >= MIN_LENGTH) {
-					Reader reader = new BufferedReader(new FileReader(dictFile));
-					onlineSearcher.search(reader, word, 2);
-					++count;
-				}
-			}
-			long endTime = System.currentTimeMillis();
+        String getFilename();
 
-			System.out.println(onlineSearcher.getClass().getSimpleName() + " search time: "
-				+ (double) (endTime - startTime) / count + " мс");
-		}
-	}
+        Index newIndex(String[] dictionary);
 
-	private static final String PATH = System.getProperty("user.home") + "/";
-	private static final int TEST_COUNT = 1000;
-	private static final int ONLINE_TEST_COUNT = 10;
-	private static final int MIN_LENGTH = 3;
+        Searcher newSearcher(Index index);
+    }
 }

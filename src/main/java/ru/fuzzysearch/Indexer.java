@@ -5,12 +5,11 @@ package ru.fuzzysearch;
  */
 public interface Indexer {
 
-	/**
-	 * Создает индекс по заданному словарю.
-	 * 
-	 * @param dictionary
-	 *            словарь
-	 * @return индекс {@link Index}
-	 */
-	public Index createIndex(String[] dictionary);
+    /**
+     * Создает индекс по заданному словарю.
+     *
+     * @param dictionary словарь
+     * @return индекс {@link Index}
+     */
+    public Index createIndex(String[] dictionary);
 }

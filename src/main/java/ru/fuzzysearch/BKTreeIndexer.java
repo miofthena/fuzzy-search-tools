@@ -6,79 +6,79 @@ import java.util.Map;
 
 public class BKTreeIndexer implements Indexer {
 
-	public BKTreeIndexer(Metric metric) {
-		this.metric = metric;
-	}
+    private final Metric metric;
 
-	public Index createIndex(String[] dictionary) {
-		long averageLength = 0;
-		for (String word : dictionary)
-			averageLength += word.length();
-		averageLength = Math.round((double) averageLength / dictionary.length);
+    public BKTreeIndexer(Metric metric) {
+        this.metric = metric;
+    }
 
-		int rootWord = -1;
+    public Index createIndex(String[] dictionary) {
+        long averageLength = 0;
+        for (String word : dictionary)
+            averageLength += word.length();
+        averageLength = Math.round((double) averageLength / dictionary.length);
 
-		for (int i = 0; i < dictionary.length && rootWord < 0; ++i)
-			if (dictionary[i].length() == averageLength) rootWord = i;
+        int rootWord = -1;
 
-		Node rootNode = new Node(rootWord);
+        for (int i = 0; i < dictionary.length && rootWord < 0; ++i)
+            if (dictionary[i].length() == averageLength) rootWord = i;
 
-		for (int i = 0; i < dictionary.length; ++i)
-			if (i != rootNode.getIndex()) rootNode.add(dictionary, metric, i);
+        Node rootNode = new Node(rootWord);
 
-		int[][] nodeMap = new int[dictionary.length][];
-		populate(nodeMap, rootNode);
+        for (int i = 0; i < dictionary.length; ++i)
+            if (i != rootNode.getIndex()) rootNode.add(dictionary, metric, i);
 
-		return new BKTreeIndex(dictionary, metric.getClass(), nodeMap, rootNode.getIndex());
-	}
+        int[][] nodeMap = new int[dictionary.length][];
+        populate(nodeMap, rootNode);
 
-	private void populate(int[][] nodeMap, Node node) {
-		int dictionaryIndex = node.getIndex();
-		Map<Integer, Node> nodeChildren = node.getChildren();
+        return new BKTreeIndex(dictionary, metric.getClass(), nodeMap, rootNode.getIndex());
+    }
 
-		if (nodeMap[dictionaryIndex] == null) {
-			int maximumDistance = 0;
-			for (Integer distance : nodeChildren.keySet())
-				if (distance > maximumDistance) maximumDistance = distance;
+    private void populate(int[][] nodeMap, Node node) {
+        int dictionaryIndex = node.getIndex();
+        Map<Integer, Node> nodeChildren = node.getChildren();
 
-			nodeMap[dictionaryIndex] = new int[maximumDistance + 1];
-			Arrays.fill(nodeMap[dictionaryIndex], -1);
-		}
+        if (nodeMap[dictionaryIndex] == null) {
+            int maximumDistance = 0;
+            for (Integer distance : nodeChildren.keySet())
+                if (distance > maximumDistance) maximumDistance = distance;
 
-		for (Map.Entry<Integer, Node> child : nodeChildren.entrySet()) {
-			Node childNode = child.getValue();
-			nodeMap[dictionaryIndex][child.getKey()] = childNode.getIndex();
-			populate(nodeMap, childNode);
-		}
-	}
+            nodeMap[dictionaryIndex] = new int[maximumDistance + 1];
+            Arrays.fill(nodeMap[dictionaryIndex], -1);
+        }
 
-	private static class Node {
+        for (Map.Entry<Integer, Node> child : nodeChildren.entrySet()) {
+            Node childNode = child.getValue();
+            nodeMap[dictionaryIndex][child.getKey()] = childNode.getIndex();
+            populate(nodeMap, childNode);
+        }
+    }
 
-		public Node(int index) {
-			this.index = index;
-			children = new HashMap<Integer, Node>();
-		}
+    private static class Node {
 
-		public int getIndex() {
-			return index;
-		}
+        private final int index;
+        private final Map<Integer, Node> children;
 
-		public Map<Integer, Node> getChildren() {
-			return children;
-		}
+        public Node(int index) {
+            this.index = index;
+            children = new HashMap<>();
+        }
 
-		public void add(String[] dictionary, Metric metric, int childWord) {
-			int distance = metric.getDistance(dictionary[index], dictionary[childWord]);
+        public int getIndex() {
+            return index;
+        }
 
-			Node child = children.get(distance);
-			if (child != null)
-				child.add(dictionary, metric, childWord);
-			else children.put(distance, new Node(childWord));
-		}
+        public Map<Integer, Node> getChildren() {
+            return children;
+        }
 
-		private final int index;
-		private final Map<Integer, Node> children;
-	}
+        public void add(String[] dictionary, Metric metric, int childWord) {
+            int distance = metric.getDistance(dictionary[index], dictionary[childWord]);
 
-	private final Metric metric;
+            Node child = children.get(distance);
+            if (child != null)
+                child.add(dictionary, metric, childWord);
+            else children.put(distance, new Node(childWord));
+        }
+    }
 }

@@ -4,85 +4,81 @@ import java.util.Arrays;
 
 public class MetaphoneRussian {
 
-	public static String encode(String string) {
-		if ((string == null) || (string.length() == 0))
-			return "";
+    private static final String alphabet = "ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯ";
+    private static final String sonants = "БЗДВГ";
+    private static final String breathConsonants = "ПСТФК";
+    private static final String sonantsToBreathConsonants = "ПСТКБВГДЖЗФХЦЧШЩ";
+    private static final String vowelPattern = "ОЮЕЭЯЁЫ";
+    private static final String vowelReplace = "АУИИАИА";
+    private static final char[] alphabetCharArray = alphabet.toCharArray();
+    private static final char[] sonantsToBreathConsonantsCharArray = sonantsToBreathConsonants.toCharArray();
 
-		StringBuilder stringBuilder = normalize(string);
-		replaceLastSonant(stringBuilder);
+    static {
+        Arrays.sort(alphabetCharArray);
+        Arrays.sort(sonantsToBreathConsonantsCharArray);
+    }
 
-		StringBuilder resultBuilder = new StringBuilder(stringBuilder.length());
+    public static String encode(String string) {
+        if ((string == null) || (string.length() == 0))
+            return "";
 
-		char oldCh = 0;
-		for (int i = 0; i < stringBuilder.length(); ++i) {
-			char ch = stringBuilder.charAt(i);
+        StringBuilder stringBuilder = normalize(string);
+        replaceLastSonant(stringBuilder);
 
-			int vowelIndex = vowelPattern.indexOf(ch);
-			if (vowelIndex >= 0) {
-				if ((oldCh == 'Й' || oldCh == 'И') && (ch == 'О' || ch == 'Е')) {
-					resultBuilder.setLength(resultBuilder.length() - 1);
-					resultBuilder.append('И');
-				}
-				else resultBuilder.append(vowelReplace.charAt(vowelIndex));
-			}
-			else {
-				if (Arrays.binarySearch(sonantsToBreathConsonantsCharArray, ch) >= 0) {
-					int sonantIndex = sonants.indexOf(oldCh);
-					if (sonantIndex >= 0) {
-						oldCh = breathConsonants.charAt(sonantIndex);
-						resultBuilder.setLength(resultBuilder.length() - 1);
-						resultBuilder.append(oldCh);
-					}
-				}
-				if (oldCh == 'Т' && ch == 'С') {
-					resultBuilder.setLength(resultBuilder.length() - 1);
-					resultBuilder.append('Ц');
-				}
-				else if (ch != oldCh)
-					resultBuilder.append(ch);
-			}
-			oldCh = ch;
-		}
-		return resultBuilder.toString();
-	}
+        StringBuilder resultBuilder = new StringBuilder(stringBuilder.length());
 
-	private static StringBuilder normalize(String string) {
-		StringBuilder stringBuilder = new StringBuilder(string.length());
+        char oldCh = 0;
+        for (int i = 0; i < stringBuilder.length(); ++i) {
+            char ch = stringBuilder.charAt(i);
 
-		char oldCh = 0;
-		for (int i = 0; i < string.length(); ++i) {
-			char ch = Character.toUpperCase(string.charAt(i));
-			if (ch != oldCh)
-				if (Arrays.binarySearch(alphabetCharArray, ch) >= 0)
-					stringBuilder.append(ch);
-			oldCh = ch;
-		}
-		return stringBuilder;
-	}
+            int vowelIndex = vowelPattern.indexOf(ch);
+            if (vowelIndex >= 0) {
+                if ((oldCh == 'Й' || oldCh == 'И') && (ch == 'О' || ch == 'Е')) {
+                    resultBuilder.setLength(resultBuilder.length() - 1);
+                    resultBuilder.append('И');
+                } else resultBuilder.append(vowelReplace.charAt(vowelIndex));
+            } else {
+                if (Arrays.binarySearch(sonantsToBreathConsonantsCharArray, ch) >= 0) {
+                    int sonantIndex = sonants.indexOf(oldCh);
+                    if (sonantIndex >= 0) {
+                        oldCh = breathConsonants.charAt(sonantIndex);
+                        resultBuilder.setLength(resultBuilder.length() - 1);
+                        resultBuilder.append(oldCh);
+                    }
+                }
+                if (oldCh == 'Т' && ch == 'С') {
+                    resultBuilder.setLength(resultBuilder.length() - 1);
+                    resultBuilder.append('Ц');
+                } else if (ch != oldCh)
+                    resultBuilder.append(ch);
+            }
+            oldCh = ch;
+        }
+        return resultBuilder.toString();
+    }
 
-	private static void replaceLastSonant(StringBuilder stringBuilder) {
-		if (stringBuilder.length() > 0) {
-			int lastSonantIndex = sonants.indexOf(stringBuilder.charAt(stringBuilder.length() - 1));
+    private static StringBuilder normalize(String string) {
+        StringBuilder stringBuilder = new StringBuilder(string.length());
 
-			if (lastSonantIndex >= 0) {
-				stringBuilder.setLength(stringBuilder.length() - 1);
-				stringBuilder.append(breathConsonants.charAt(lastSonantIndex));
-			}
-		}
-	}
+        char oldCh = 0;
+        for (int i = 0; i < string.length(); ++i) {
+            char ch = Character.toUpperCase(string.charAt(i));
+            if (ch != oldCh)
+                if (Arrays.binarySearch(alphabetCharArray, ch) >= 0)
+                    stringBuilder.append(ch);
+            oldCh = ch;
+        }
+        return stringBuilder;
+    }
 
-	private static final String alphabet = "ЁАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯ";
-	private static final String sonants = "БЗДВГ";
-	private static final String breathConsonants = "ПСТФК";
-	private static final String sonantsToBreathConsonants = "ПСТКБВГДЖЗФХЦЧШЩ";
-	private static final String vowelPattern = "ОЮЕЭЯЁЫ";
-	private static final String vowelReplace = "АУИИАИА";
+    private static void replaceLastSonant(StringBuilder stringBuilder) {
+        if (stringBuilder.length() > 0) {
+            int lastSonantIndex = sonants.indexOf(stringBuilder.charAt(stringBuilder.length() - 1));
 
-	private static final char[] alphabetCharArray = alphabet.toCharArray();
-	private static final char[] sonantsToBreathConsonantsCharArray = sonantsToBreathConsonants.toCharArray();
-
-	static {
-		Arrays.sort(alphabetCharArray);
-		Arrays.sort(sonantsToBreathConsonantsCharArray);
-	}
+            if (lastSonantIndex >= 0) {
+                stringBuilder.setLength(stringBuilder.length() - 1);
+                stringBuilder.append(breathConsonants.charAt(lastSonantIndex));
+            }
+        }
+    }
 }

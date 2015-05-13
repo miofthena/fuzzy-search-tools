@@ -2,13 +2,13 @@ package ru.fuzzysearch;
 
 public abstract class WordSearcher implements Searcher {
 
-	protected WordSearcher(Index index) {
-		this.index = index;
-	}
+    private final Index index;
 
-	public Index getIndex() {
-		return index;
-	}
+    protected WordSearcher(Index index) {
+        this.index = index;
+    }
 
-	private final Index index;
+    public Index getIndex() {
+        return index;
+    }
 }
